@@ -1,69 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TikTok Downloader — 4K No Watermark</title>
+  <meta charset="UTF-8">
+  <title>TikTok Downloader</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15); --text: #f0f0f0; --muted: #888; --accent: #fe2c55; --radius: 14px; }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
-    .card { width: 100%; max-width: 580px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; }
-    input[type="text"] { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px; margin-bottom: 10px; border-radius: 8px; }
-    .btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .result { display: none; margin-top: 20px; }
-    .result.show { display: block; }
-    .error { color: #ff6b6b; margin-top: 10px; display: none; }
+    body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+    .card { background: #141414; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none; }
+    button { width: 100%; padding: 10px; background: #fe2c55; border: none; color: white; border-radius: 6px; cursor: pointer; }
+    #result { display: none; margin-top: 20px; }
   </style>
 </head>
 <body>
-
 <div class="card">
-  <h1>TikTok Downloader</h1>
-  <input type="text" id="urlInput" placeholder="Paste TikTok link here…" />
-  <button class="btn" id="fetchBtn" onclick="fetchVideo()">Fetch Video</button>
-  <p class="error" id="errorMsg"></p>
-
-  <div class="result" id="result">
-    <h3 id="metaTitle">Video Title</h3>
-    <button class="btn" onclick="startDownload()" style="margin-top: 15px; background: #25f4ee; color: black;">Download Video</button>
+  <input type="text" id="url" placeholder="Paste link...">
+  <button id="fetchBtn" onclick="fetchVideo()">Fetch</button>
+  <div id="result">
+    <button onclick="startDownload()">Download Video</button>
   </div>
 </div>
-
 <script>
-  let videoData = null;
-
+  let videoUrl = "";
   async function fetchVideo() {
-    const url = document.getElementById('urlInput').value.trim();
-    const btn = document.getElementById('fetchBtn');
-    btn.disabled = true;
-    try {
-      const res = await fetch('/api/fetch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      videoData = await res.json();
-      if (videoData.error) throw new Error(videoData.error);
-      
-      document.getElementById('metaTitle').textContent = videoData.title;
-      document.getElementById('result').classList.add('show');
-    } catch (err) {
-      document.getElementById('errorMsg').style.display = 'block';
-      document.getElementById('errorMsg').textContent = err.message;
-    } finally {
-      btn.disabled = false;
-    }
+    const url = document.getElementById('url').value;
+    const res = await fetch('/api/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    videoUrl = data.play;
+    document.getElementById('result').style.display = 'block';
   }
-
   function startDownload() {
-    if (!videoData) return;
-    const dlUrl = videoData.downloads["4K"] || videoData.downloads["1080p"];
-    const safeName = (videoData.title || 'tiktok').replace(/[^a-z0-9]/gi, "_");
-    const proxyUrl = `/api/download?url=${encodeURIComponent(dlUrl)}&filename=${encodeURIComponent(safeName)}`;
-    
-    // Using window.open to bypass security blocks
-    window.open(proxyUrl, '_blank');
+    window.location.href = `/api/download?url=${encodeURIComponent(videoUrl)}`;
   }
 </script>
 </body>
