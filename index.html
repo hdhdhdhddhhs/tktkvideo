@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok Downloader — 4K No Watermark</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.15);
+      --text: #f0f0f0;
+      --muted: #888;
+      --accent: #fe2c55;
+      --accent2: #25f4ee;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0.75rem;
+    }
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: #000;
+      border-radius: 12px;
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 26px; height: 26px; }
+    h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    h1 span { color: var(--accent); }
+    .tagline {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .badges {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+    }
+
+    /* ── Main card ── */
+    .card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Mode tabs ── */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+    }
+    .tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border2);
+    }
+
+    /* ── Input ── */
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus { border-color: var(--border2); }
+    input[type="text"]::placeholder { color: var(--muted); }
+    .btn-fetch {
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-fetch:hover { opacity: 0.88; }
+    .btn-fetch:active { transform: scale(0.97); }
+    .btn-fetch:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .error {
+      font-size: 13px;
+      color: #ff6b6b;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* ── Result ── */
+    .result { display: none; margin-top: 1.5rem; }
+    .result.show { display: block; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 1.25rem;
+    }
+
+    .video-meta {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 1.25rem;
+    }
+    .thumb {
+      width: 72px; height: 72px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: var(--surface2);
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .thumb-placeholder {
+      width: 72px; height: 72px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .meta-text { flex: 1; min-width: 0; }
+    .meta-title {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 6px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .meta-sub { font-size: 12px; color: var(--muted); }
+    .meta-sub span { margin-right: 12px; }
+
+    /* ── Quality grid ── */
+    .quality-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .quality-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .q-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .q-card:hover { border-color: var(--border2); }
+    .q-card.selected {
+      border-color: var(--accent);
+      background: rgba(254, 44, 85, 0.08);
+    }
+    .q-name { font-size: 13px; font-weight: 600; }
+    .q-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .q-best {
+      font-size: 9px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    /* ── Download button ── */
+    .btn-download {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), #ff6b8a);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-download:hover { opacity: 0.9; }
+    .btn-download:active { transform: scale(0.98); }
+    .btn-download:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-download svg { width: 18px; height: 18px; }
+
+    /* ── Progress ── */
+    .progress-wrap { margin-top: 10px; display: none; }
+    .progress-track {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* ── Tips ── */
+    .tips {
+      display: flex;
+      gap: 16px;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .tip {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tip-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    /* ── History ── */
+    .history-card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.75rem;
+      display: none;
+    }
+    .history-card.show { display: block; }
+    .history-header {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .hi-icon {
+      width: 34px; height: 34px;
+      background: var(--surface2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .hi-meta { flex: 1; min-width: 0; }
+    .hi-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .hi-btn {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      background: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .hi-btn:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 2.5rem;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 480px) {
+      .quality-grid { grid-template-columns: repeat(2, 1fr); }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.12 8.12 0 004.77 1.52V6.75a4.85 4.85 0 01-1-.06z" fill="white"/>
+      </svg>
+    </div>
+    <h1>TikTok <span>Downloader</span></h1>
+  </div>
+  <p class="tagline">Download TikTok videos in 4K — no watermark, no sign-in</p>
+  <div class="badges">
+    <span class="badge">✦ No watermark</span>
+    <span class="badge">✦ Up to 4K</span>
+    <span class="badge">✦ Audio extraction</span>
+    <span class="badge">✦ Free forever</span>
+  </div>
+</header>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="setMode(this,'video')">🎬 Video</button>
+    <button class="tab" onclick="setMode(this,'audio')">🎵 Audio only</button>
+    <button class="tab" onclick="setMode(this,'nowm')">🚫 No watermark</button>
+  </div>
+
+  <div class="input-row">
+    <input type="text" id="urlInput" placeholder="Paste TikTok link here…" oninput="clearError()" />
+    <button class="btn-fetch" id="fetchBtn" onclick="fetchVideo()">Fetch</button>
+  </div>
+  <p class="error" id="errorMsg"></p>
+
+  <div class="result" id="result">
+    <div class="divider"></div>
+
+    <div class="video-meta">
+      <img class="thumb" id="thumbImg" src="" alt="thumbnail" onerror="this.style.display='none'; document.getElementById('thumbPlaceholder').style.display='flex';" />
+      <div class="thumb-placeholder" id="thumbPlaceholder" style="display:none">🎵</div>
+      <div class="meta-text">
+        <p class="meta-title" id="metaTitle">—</p>
+        <div class="meta-sub">
+          <span id="metaUser">—</span>
+          <span id="metaViews">—</span>
+          <span id="metaDur">—</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="quality-label">Select quality</p>
+    <div class="quality-grid" id="qualityGrid"></div>
+
+    <button class="btn-download" id="dlBtn" onclick="startDownload()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/>
+      </svg>
+      <span id="dlBtnText">Download</span>
+    </button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-label" id="progressLabel">Preparing download…</p>
+    </div>
+
+    <div class="tips">
+      <span class="tip"><span class="tip-dot"></span>No watermark</span>
+      <span class="tip"><span class="tip-dot"></span>Original quality</span>
+      <span class="tip"><span class="tip-dot"></span>Fast servers</span>
+    </div>
+  </div>
+</div>
+
+<div class="history-card" id="historyCard">
+  <div class="history-header">🕓 Recent downloads</div>
+  <div id="historyList"></div>
+</div>
+
+<footer>
+  Built with ❤️ — for personal use only<br>
+  Respect content creators and TikTok's Terms of Service
+</footer>
+
+<script>
+  let currentMode = 'video';
+  let selectedQ = null;
+  let videoData = null;
+  let history = [];
+
+  const qualityOptions = {
+    video: [
+      { label: '4K',    key: '4K',    size: '~85 MB', best: true  },
+      { label: '1080p', key: '1080p', size: '~42 MB', best: false },
+      { label: '720p',  key: '720p',  size: '~22 MB', best: false },
+      { label: '480p',  key: '720p',  size: '~12 MB', best: false },
+    ],
+    audio: [
+      { label: 'MP3 320', key: 'MP3', size: '~8 MB', best: true  },
+      { label: 'MP3 192', key: 'MP3', size: '~5 MB', best: false },
+    ],
+    nowm: [
+      { label: '4K NW',    key: '4K',    size: '~85 MB', best: true  },
+      { label: '1080p NW', key: '1080p', size: '~42 MB', best: false },
+      { label: '720p NW',  key: '720p',  size: '~22 MB', best: false },
+    ],
+  };
+
+  function setMode(btn, mode) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = mode;
+    if (videoData) renderQualityGrid();
+  }
+
+  function renderQualityGrid() {
+    const opts = qualityOptions[currentMode];
+    selectedQ = opts[0].key;
+    document.getElementById('qualityGrid').innerHTML = opts.map((o, i) => `
+      <div class="q-card ${i === 0 ? 'selected' : ''}" onclick="selectQ(this, '${o.key}', '${o.label}')">
+        <div class="q-name">${o.label}</div>
+        <div class="q-size">${o.size}</div>
+        ${o.best ? '<div class="q-best">BEST</div>' : ''}
+      </div>`).join('');
+    updateDlBtn();
+  }
+
+  function selectQ(card, key, label) {
+    document.querySelectorAll('.q-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedQ = key;
+    updateDlBtn();
+  }
+
+  function updateDlBtn() {
+    const sel = document.querySelector('.q-card.selected');
+    const label = sel ? sel.querySelector('.q-name').textContent : selectedQ;
+    document.getElementById('dlBtnText').textContent = 'Download ' + label;
+  }
+
+  function clearError() {
+    const e = document.getElementById('errorMsg');
+    e.style.display = 'none';
+  }
+
+  function showError(msg) {
+    const e = document.getElementById('errorMsg');
+    e.textContent = msg;
+    e.style.display = 'block';
+  }
+
+  async function fetchVideo() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) { showError('Please paste a TikTok URL.'); return; }
+    if (!url.includes('tiktok.com')) { showError('That doesn\'t look like a TikTok link.'); return; }
+
+    const btn = document.getElementById('fetchBtn');
+    btn.textContent = 'Fetching…';
+    btn.disabled = true;
+    clearError();
+
+    try {
+      const res = await fetch('/api/fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'Failed to fetch video.');
+        return;
+      }
+
+      videoData = data;
+
+      // populate meta
+      const thumb = document.getElementById('thumbImg');
+      thumb.src = data.cover || '';
+      thumb.style.display = 'block';
+      document.getElementById('thumbPlaceholder').style.display = 'none';
+      document.getElementById('metaTitle').textContent = data.title || 'TikTok Video';
+      document.getElementById('metaUser').textContent = data.username || '';
+      document.getElementById('metaViews').textContent = data.play_count ? formatNum(data.play_count) + ' views' : '';
+      document.getElementById('metaDur').textContent = data.duration ? formatDur(data.duration) : '';
+
+      renderQualityGrid();
+      document.getElementById('result').classList.add('show');
+    } catch (err) {
+      showError('Network error. Is the server running?');
+    } finally {
+      btn.textContent = 'Fetch';
+      btn.disabled = false;
+    }
+  }
+
+  async function startDownload() {
+    if (!videoData) return;
+
+    const dlUrl = videoData.downloads[selectedQ] || videoData.downloads['1080p'];
+    if (!dlUrl) { showError('Download link not available for this quality.'); return; }
+
+    const btn = document.getElementById('dlBtn');
+    const wrap = document.getElementById('progressWrap');
+    const fill = document.getElementById('progressFill');
+    const label = document.getElementById('progressLabel');
+
+    btn.disabled = true;
+    wrap.style.display = 'block';
+    fill.style.width = '0%';
+    label.textContent = 'Preparing download…';
+
+    // animate bar while fetching
+    let pct = 0;
+    const iv = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 8 + 3, 90);
+      fill.style.width = pct + '%';
+      label.textContent = Math.round(pct) + '%';
+    }, 200);
+
+    try {
+      const safeName = (videoData.title || 'tiktok').substring(0, 40);
+      const isAudio = selectedQ === 'MP3';
+      const proxyUrl = `/api/download?url=${encodeURIComponent(dlUrl)}&filename=${encodeURIComponent(safeName)}${isAudio ? '.mp3' : ''}`;
+
+      const a = document.createElement('a');
+      a.href = proxyUrl;
+      a.download = safeName + (isAudio ? '.mp3' : '.mp4');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      clearInterval(iv);
+      fill.style.width = '100%';
+      label.textContent = '✓ Download started!';
+      document.getElementById('dlBtnText').textContent = '✓ Downloaded!';
+
+      addHistory(videoData.title, videoData.username, selectedQ);
+
+      setTimeout(() => {
+        wrap.style.display = 'none';
+        btn.disabled = false;
+        updateDlBtn();
+      }, 2500);
+    } catch (err) {
+      clearInterval(iv);
+      wrap.style.display = 'none';
+      btn.disabled = false;
+      showError('Download failed. Try again.');
+    }
+  }
+
+  function addHistory(title, user, quality) {
+    history.unshift({ title, user, quality });
+    if (history.length > 5) history.pop();
+    const card = document.getElementById('historyCard');
+    const list = document.getElementById('historyList');
+    card.classList.add('show');
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div class="hi-icon">🎬</div>
+        <div class="hi-meta">
+          <div class="hi-title">${h.title}</div>
+          <div class="hi-sub">${h.user} · ${h.quality}</div>
+        </div>
+        <button class="hi-btn">↓ Again</button>
+      </div>`).join('');
+  }
+
+  function formatNum(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return n;
+  }
+
+  function formatDur(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  // allow pressing Enter
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') fetchVideo();
+  });
+</script>
+</body>
+</html>
