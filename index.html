@@ -2,39 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TikTok Downloader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You</title>
   <style>
-    body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
-    .card { background: #141414; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none; }
-    button { width: 100%; padding: 10px; background: #fe2c55; border: none; color: white; border-radius: 6px; cursor: pointer; }
-    #result { display: none; margin-top: 20px; }
+    :root {
+      --bg: #0a0a0a;
+      --text: #ffffff;
+      --accent: #fe2c55;
+      --muted: #888888;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 1rem;
+    }
+    span { color: var(--accent); }
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--text);
+      color: var(--bg);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.8; }
   </style>
 </head>
 <body>
-<div class="card">
-  <input type="text" id="url" placeholder="Paste link...">
-  <button id="fetchBtn" onclick="fetchVideo()">Fetch</button>
-  <div id="result">
-    <button onclick="startDownload()">Download Video</button>
-  </div>
+
+<div class="container">
+  <h1>Thank <span>You.</span></h1>
+  <p>I appreciate you taking the time to use this tool. Your support means everything—built with passion for the creators and the community.</p>
+  <a href="/" class="btn">Return Home</a>
 </div>
-<script>
-  let videoUrl = "";
-  async function fetchVideo() {
-    const url = document.getElementById('url').value;
-    const res = await fetch('/api/fetch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    });
-    const data = await res.json();
-    videoUrl = data.play;
-    document.getElementById('result').style.display = 'block';
-  }
-  function startDownload() {
-    window.location.href = `/api/download?url=${encodeURIComponent(videoUrl)}`;
-  }
-</script>
+
 </body>
 </html>
