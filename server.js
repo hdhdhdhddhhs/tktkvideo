@@ -9,10 +9,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// FIXED: Serve static files from the root directory where server.js and index.html are located
+// Serve static files from the root directory
 app.use(express.static(__dirname));
 
-// ── Fetch video info + download links via tikwm.com ──
+// ── Fetch video info ──
 app.post("/api/fetch", async (req, res) => {
   const { url } = req.body;
 
@@ -28,25 +28,16 @@ app.post("/api/fetch", async (req, res) => {
     );
 
     const data = response.data;
-
     if (!data || data.code !== 0) {
       return res.status(400).json({ error: "Could not fetch video. Make sure the link is public." });
     }
 
     const v = data.data;
-
     return res.json({
       title: v.title || "TikTok Video",
-      author: v.author?.nickname || "unknown",
-      username: "@" + (v.author?.unique_id || "unknown"),
-      cover: v.cover,
-      duration: v.duration,
-      play_count: v.play_count,
       downloads: {
-        "4K":    v.hdplay || v.play,
+        "4K": v.hdplay || v.play,
         "1080p": v.play,
-        "720p":  v.wmplay || v.play,
-        "MP3":   v.music,
       },
     });
   } catch (err) {
@@ -62,28 +53,26 @@ app.get("/api/download", async (req, res) => {
   if (!videoUrl) return res.status(400).send("Missing URL");
 
   try {
-    const stream = await axios.get(videoUrl, {
+    const response = await axios.get(videoUrl, {
       responseType: "stream",
       headers: {
-        Referer: "https://www.tiktok.com/",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Referer": "https://www.tiktok.com/",
+        "Accept": "*/*",
       },
     });
 
-    const ext = filename && filename.endsWith(".mp3") ? "mp3" : "mp4";
-    const safeName = (filename || "tiktok_video").replace(/[^a-z0-9_\-\.]/gi, "_");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename || 'tiktok'}.mp4"`);
+    res.setHeader("Content-Type", "video/mp4");
 
-    res.setHeader("Content-Disposition", `attachment; filename="${safeName}.${ext}"`);
-    res.setHeader("Content-Type", ext === "mp3" ? "audio/mpeg" : "video/mp4");
-
-    if (stream.headers["content-length"]) {
-      res.setHeader("Content-Length", stream.headers["content-length"]);
+    if (response.headers["content-length"]) {
+      res.setHeader("Content-Length", response.headers["content-length"]);
     }
-
-    stream.data.pipe(res);
+    
+    response.data.pipe(res);
   } catch (err) {
-    console.error("Download error:", err.message);
-    res.status(500).send("Download failed");
+    console.error("Proxy error:", err.message);
+    res.status(500).send("Download failed. The video link may have expired.");
   }
 });
 
