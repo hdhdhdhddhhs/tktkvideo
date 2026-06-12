@@ -4,53 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TikTok Downloader — 4K No Watermark</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15); --text: #f0f0f0; --muted: #888; --accent: #fe2c55; --accent2: #25f4ee; --radius: 14px; --radius-sm: 8px; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; }
-    header { text-align: center; margin-bottom: 2.5rem; }
-    .card { width: 100%; max-width: 580px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 1rem; }
-    .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; }
-    .tab { flex: 1; padding: 8px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; }
-    .tab.active { background: var(--surface); color: var(--text); border: 1px solid var(--border2); }
-    .input-row { display: flex; gap: 8px; }
-    input[type="text"] { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 12px 14px; outline: none; }
-    .btn-fetch { padding: 12px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
-    .error { font-size: 13px; color: #ff6b6b; margin-top: 8px; display: none; }
-    .result { display: none; margin-top: 1.5rem; }
+    :root { --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15); --text: #f0f0f0; --muted: #888; --accent: #fe2c55; --radius: 14px; }
+    body { background: var(--bg); color: var(--text); font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .card { width: 100%; max-width: 580px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; }
+    input[type="text"] { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px; margin-bottom: 10px; border-radius: 8px; }
+    .btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .result { display: none; margin-top: 20px; }
     .result.show { display: block; }
-    .btn-download { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--accent), #ff6b8a); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .error { color: #ff6b6b; margin-top: 10px; display: none; }
   </style>
 </head>
 <body>
 
-<header><h1>TikTok <span>Downloader</span></h1></header>
-
 <div class="card">
-  <div class="tabs">
-    <button class="tab active" onclick="setMode(this,'video')">🎬 Video</button>
-    <button class="tab" onclick="setMode(this,'audio')">🎵 Audio</button>
-  </div>
-  <div class="input-row">
-    <input type="text" id="urlInput" placeholder="Paste TikTok link here…" />
-    <button class="btn-fetch" id="fetchBtn" onclick="fetchVideo()">Fetch</button>
-  </div>
+  <h1>TikTok Downloader</h1>
+  <input type="text" id="urlInput" placeholder="Paste TikTok link here…" />
+  <button class="btn" id="fetchBtn" onclick="fetchVideo()">Fetch Video</button>
   <p class="error" id="errorMsg"></p>
 
   <div class="result" id="result">
-    <button class="btn-download" id="dlBtn" onclick="startDownload()">Download Video</button>
+    <h3 id="metaTitle">Video Title</h3>
+    <button class="btn" onclick="startDownload()" style="margin-top: 15px; background: #25f4ee; color: black;">Download Video</button>
   </div>
 </div>
 
 <script>
   let videoData = null;
-  let selectedQ = '1080p';
-
-  function setMode(btn, mode) {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
 
   async function fetchVideo() {
     const url = document.getElementById('urlInput').value.trim();
@@ -64,6 +45,8 @@
       });
       videoData = await res.json();
       if (videoData.error) throw new Error(videoData.error);
+      
+      document.getElementById('metaTitle').textContent = videoData.title;
       document.getElementById('result').classList.add('show');
     } catch (err) {
       document.getElementById('errorMsg').style.display = 'block';
@@ -73,16 +56,13 @@
     }
   }
 
-  // FIXED: Force download in new tab to bypass security blocks
-  async function startDownload() {
+  function startDownload() {
     if (!videoData) return;
-    const dlUrl = videoData.downloads[selectedQ] || videoData.downloads['1080p'];
+    const dlUrl = videoData.downloads["4K"] || videoData.downloads["1080p"];
     const safeName = (videoData.title || 'tiktok').replace(/[^a-z0-9]/gi, "_");
-    
-    // This sends the request to your backend proxy
     const proxyUrl = `/api/download?url=${encodeURIComponent(dlUrl)}&filename=${encodeURIComponent(safeName)}`;
     
-    // Open in a new tab to bypass 'organization' security blocks
+    // Using window.open to bypass security blocks
     window.open(proxyUrl, '_blank');
   }
 </script>
