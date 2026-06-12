@@ -8,9 +8,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
 
-// ── Fetch video info + download links via tikwm.com (free, no key needed) ──
+// FIXED: Serve static files from the root directory where server.js and index.html are located
+app.use(express.static(__dirname));
+
+// ── Fetch video info + download links via tikwm.com ──
 app.post("/api/fetch", async (req, res) => {
   const { url } = req.body;
 
@@ -40,7 +42,6 @@ app.post("/api/fetch", async (req, res) => {
       cover: v.cover,
       duration: v.duration,
       play_count: v.play_count,
-      // no-watermark versions
       downloads: {
         "4K":    v.hdplay || v.play,
         "1080p": v.play,
@@ -54,7 +55,7 @@ app.post("/api/fetch", async (req, res) => {
   }
 });
 
-// ── Proxy the download so the browser gets a file instead of a redirect ──
+// ── Proxy the download ──
 app.get("/api/download", async (req, res) => {
   const { url: videoUrl, filename } = req.query;
 
@@ -65,8 +66,7 @@ app.get("/api/download", async (req, res) => {
       responseType: "stream",
       headers: {
         Referer: "https://www.tiktok.com/",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
       },
     });
 
