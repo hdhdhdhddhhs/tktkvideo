@@ -2,62 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thank You</title>
+  <title>TKTK // COMMAND CENTER</title>
   <style>
-    :root {
-      --bg: #0a0a0a;
-      --text: #ffffff;
-      --accent: #fe2c55;
-      --muted: #888888;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      text-align: center;
-    }
-    .container {
-      max-width: 500px;
-      padding: 2rem;
-    }
-    h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: -2px;
-      margin-bottom: 1rem;
-    }
-    span { color: var(--accent); }
-    p {
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 24px;
-      background: var(--text);
-      color: var(--bg);
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: opacity 0.2s;
-    }
-    .btn:hover { opacity: 0.8; }
+    :root { --bg: #050505; --accent: #fe2c55; --cyan: #25f4ee; --border: #333; }
+    body { background: var(--bg); color: white; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; text-transform: uppercase; }
+    .card { width: 400px; padding: 2rem; border: 1px solid var(--border); background: rgba(255,255,255,0.02); backdrop-filter: blur(10px); }
+    .header { font-size: 0.6rem; color: var(--cyan); border: 1px solid var(--cyan); padding: 5px; margin-bottom: 2rem; text-align: center; }
+    input { width: 100%; background: #000; border: 1px solid var(--border); color: white; padding: 15px; box-sizing: border-box; margin-bottom: 10px; }
+    button { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: 800; cursor: pointer; transition: 0.3s; }
+    button:hover { box-shadow: 0 0 15px var(--accent); }
+    #result { display: none; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; }
+    .system-tag { position: fixed; bottom: 20px; left: 20px; font-size: 0.6rem; color: #444; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Thank <span>You.</span></h1>
-  <p>I appreciate you taking the time to use this tool. Your support means everything—built with passion for the creators and the community.</p>
-  <a href="/" class="btn">Return Home</a>
+<div class="card">
+  <div class="header">ENGINEERED BY ✦ X76XS</div>
+  <input type="text" id="url" placeholder="PASTE_TIKTOK_URL_HERE...">
+  <button id="fetchBtn" onclick="fetchVideo()">INITIALIZE_FETCH</button>
+  <div id="result">
+    <p id="metaTitle" style="font-size: 0.7rem; opacity: 0.6;"></p>
+    <button onclick="startDownload()" style="background: var(--cyan); color: black;">DOWNLOAD_STREAM</button>
+  </div>
 </div>
 
+<div class="system-tag">UNIT_ID: X76XS // V.2026.06</div>
+
+<script>
+  let videoUrl = "";
+  async function fetchVideo() {
+    const url = document.getElementById('url').value;
+    const btn = document.getElementById('fetchBtn');
+    btn.innerText = "PROCESSING_PACKETS...";
+    const res = await fetch('/api/fetch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+    const data = await res.json();
+    if(data.play) {
+      videoUrl = data.play;
+      document.getElementById('metaTitle').innerText = (data.title || "4K_STREAM_READY");
+      document.getElementById('result').style.display = 'block';
+    }
+    btn.innerText = "INITIALIZE_FETCH";
+  }
+  function startDownload() { window.location.href = `/api/download?url=${encodeURIComponent(videoUrl)}`; }
+</script>
 </body>
 </html>
